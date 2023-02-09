@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+   <meta charset="UTF-8">
+   <title>Search Box</title>
+   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+   <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+    <script src="https://unpkg.com/lunr/lunr.js"></script>
+    <div class="wrap">
+        <div class="search">
+          <input type="text" class="searchTerm" placeholder="What are you looking for?" id="search-input">
+          <button type="submit" class="searchButton" onclick="search()">
+            <i class="fa fa-search"></i>
+          </button>
+        </div>
+      </div>
+      
+      <script>
+        function search() {
+          var searchTerm = document.getElementById("search-input").value;
+          console.log("Search term: " + searchTerm);
+      
+          var results = idx.search(searchTerm);
+          console.log(results);
+          // Your code to display the search results
+        }
+      </script>
+
+      <script>
+        console.log(lunr);
+        var idx = lunr(function () {
+          this.field("title", {boost: 10});
+          this.field("body");
+      
+          this.ref("id");
+        });
+      
+        // Add data to the index
+        idx.add({
+          id: 1,
+          title: "Example title 1",
+          body: "Example body text 1"
+        });
+      
+        idx.add({
+          id: 2,
+          title: "Example title 2",
+          body: "Example body text 2"
+        });
+      
+        // Log the index to the console
+        console.log(JSON.stringify(idx));
+      </script>   
+</body>
+</html>
