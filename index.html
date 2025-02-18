@@ -1,22 +1,224 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>GameTreason</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GameTreason - Game Guides & Tutorials</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" type="text/css" href="style.css">
-    
 </head>
-
 <body>
-    <body style="background-color:#DFE1E5;"></body>
-    
-    <div class="wrap">
-        <div class="search">
-            <script async src="https://cse.google.com/cse.js?cx=467e0241542cb43e4"></script>
-            <div class="gcse-search"></div>
+    <div class="container">
+        <header>
+            <h1>GameTreason</h1>
+            <p>Find video guides for your favorite games</p>
+        </header>
+
+        <div class="search-container">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Search for a game..." autocomplete="off">
+                <button id="searchButton">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+            <div id="searchResults" class="search-results"></div>
+        </div>
+
+        <div class="featured-games" id="featuredGames">
+            <h2>Featured Games</h2>
+            <div class="game-carousel" id="gameCarousel">
+                <div class="game-slide active">
+                    <a href="videos/callofduty/index.html" class="game-slide-content">
+                        <img src="images/callofduty.jpg" alt="Call of Duty" class="game-slide-image">
+                        <div class="game-slide-info">
+                            <h3>Call of Duty</h3>
+                        </div>
+                    </a>
+                </div>
+                <div class="carousel-controls">
+                    <div class="carousel-dot active" data-slide="0"></div>
+                    <div class="carousel-dot" data-slide="1"></div>
+                </div>
+                <div class="carousel-arrow carousel-prev">
+                    <i class="fas fa-chevron-left"></i>
+                </div>
+                <div class="carousel-arrow carousel-next">
+                    <i class="fas fa-chevron-right"></i>
+                </div>
+            </div>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Game database with content types
+            const games = [
+                { 
+                    title: 'Call of Duty',
+                    url: 'videos/callofduty/index.html',
+                    type: 'guide'
+                }
+            ];
+
+            // Search functionality
+            const searchInput = document.getElementById('searchInput');
+            const searchResults = document.getElementById('searchResults');
+            const searchButton = document.getElementById('searchButton');
+            const featuredGames = document.getElementById('featuredGames');
+
+            function getIconForType(type) {
+                const icons = {
+                    'guide': '<i class="fas fa-gamepad"></i>',
+                    'tutorial': '<i class="fas fa-graduation-cap"></i>',
+                    'walkthrough': '<i class="fas fa-map-signs"></i>'
+                };
+                return icons[type] || icons['guide'];
+            }
+
+            function highlightMatch(text, query) {
+                if (!query) return text;
+                const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+                return text.replace(regex, '<span class="highlight">$1</span>');
+            }
+
+            function performSearch() {
+                const query = searchInput.value.toLowerCase().trim();
+                searchResults.innerHTML = '';
+                
+                if (query.length === 0) {
+                    searchResults.classList.remove('active');
+                    featuredGames.style.opacity = '1';
+                    return;
+                }
+
+                const matches = games.filter(game => 
+                    game.title.toLowerCase().includes(query)
+                );
+
+                if (matches.length > 0) {
+                    searchResults.classList.add('active');
+                    featuredGames.style.opacity = '0.2';
+                    
+                    matches.forEach(game => {
+                        const div = document.createElement('div');
+                        div.className = 'search-result';
+                        const highlightedTitle = highlightMatch(game.title, query);
+                        div.innerHTML = `
+                            <a href="${game.url}" class="result-link">
+                                <div class="result-content">
+                                    <div class="game-icon ${game.type}">
+                                        ${getIconForType(game.type)}
+                                    </div>
+                                    <div class="game-info">
+                                        <h4>${highlightedTitle}</h4>
+                                        <span class="result-type">${game.type.charAt(0).toUpperCase() + game.type.slice(1)}</span>
+                                    </div>
+                                </div>
+                            </a>
+                        `;
+                        searchResults.appendChild(div);
+                    });
+                } else {
+                    searchResults.classList.add('active');
+                    featuredGames.style.opacity = '0.2';
+                    searchResults.innerHTML = `
+                        <div class="no-results">
+                            <i class="fas fa-search"></i>
+                            <p>No games found for "${query}"</p>
+                        </div>
+                    `;
+                }
+            }
+
+            // Carousel functionality
+            const carousel = document.getElementById('gameCarousel');
+            const slides = carousel.querySelectorAll('.game-slide');
+            const dots = carousel.querySelectorAll('.carousel-dot');
+            const prevBtn = carousel.querySelector('.carousel-prev');
+            const nextBtn = carousel.querySelector('.carousel-next');
+            let currentSlide = 0;
+            let autoplayInterval;
+
+            function showSlide(index) {
+                slides.forEach(slide => slide.classList.remove('active'));
+                dots.forEach(dot => dot.classList.remove('active'));
+                
+                currentSlide = index;
+                if (currentSlide >= slides.length) currentSlide = 0;
+                if (currentSlide < 0) currentSlide = slides.length - 1;
+                
+                slides[currentSlide].classList.add('active');
+                dots[currentSlide].classList.add('active');
+            }
+
+            function nextSlide() {
+                showSlide(currentSlide + 1);
+            }
+
+            function prevSlide() {
+                showSlide(currentSlide - 1);
+            }
+
+            function startAutoplay() {
+                stopAutoplay();
+                autoplayInterval = setInterval(nextSlide, 5000);
+            }
+
+            function stopAutoplay() {
+                if (autoplayInterval) {
+                    clearInterval(autoplayInterval);
+                }
+            }
+
+            // Event listeners
+            prevBtn.addEventListener('click', () => {
+                prevSlide();
+                startAutoplay();
+            });
+
+            nextBtn.addEventListener('click', () => {
+                nextSlide();
+                startAutoplay();
+            });
+
+            dots.forEach((dot, index) => {
+                dot.addEventListener('click', () => {
+                    showSlide(index);
+                    startAutoplay();
+                });
+            });
+
+            carousel.addEventListener('mouseenter', stopAutoplay);
+            carousel.addEventListener('mouseleave', startAutoplay);
+
+            searchInput.addEventListener('input', performSearch);
+            searchButton.addEventListener('click', performSearch);
+            
+            // Close search results when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!searchResults.contains(e.target) && 
+                    !searchInput.contains(e.target) && 
+                    !searchButton.contains(e.target)) {
+                    searchResults.classList.remove('active');
+                    featuredGames.style.opacity = '1';
+                }
+            });
+
+            // Focus input when clicking search box
+            document.querySelector('.search-box').addEventListener('click', (e) => {
+                if (e.target.closest('.search-box')) {
+                    searchInput.focus();
+                }
+            });
+
+            // Prevent form submission
+            searchInput.closest('form')?.addEventListener('submit', (e) => {
+                e.preventDefault();
+            });
+
+            // Start autoplay
+            startAutoplay();
+        });
+    </script>
 </body>
 </html>
